@@ -1,8 +1,8 @@
 # MNIST experiment configuration
 
 dataset:
-  train_csv: "../data/MNIST/mnist_train.csv"
-  test_csv: "../data/MNIST/mnist_test.csv"
+  train_csv: "data/MNIST/mnist_train.csv"
+  test_csv: "data/MNIST/mnist_test.csv"
 
 model:
   input_shape: [28, 28, 1]

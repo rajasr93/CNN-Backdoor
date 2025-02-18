@@ -7,13 +7,19 @@ from attacks.ramp_signal import create_ramp_signal
 from attacks.backdoor_attack import inject_backdoor_signal
 from utils.evaluation import evaluate_model
 
-# Load configuration
-with open(os.path.join("..", "..", "config", "mnist_config.yaml"), "r") as f:
+# Get the project base directory relative to this file
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+config_path = os.path.join(base_dir, "config", "mnist_config.yaml")
+
+with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
-# Load MNIST data
-train_csv = config["dataset"]["train_csv"]
-test_csv = config["dataset"]["test_csv"]
+# Convert dataset paths to absolute paths using base_dir
+train_csv = os.path.join(base_dir, config["dataset"]["train_csv"])
+test_csv = os.path.join(base_dir, config["dataset"]["test_csv"])
+
+print("Training CSV absolute path:", train_csv)
+print("Testing CSV absolute path:", test_csv)
 
 x_train, y_train = load_mnist(train_csv)
 x_test, y_test = load_mnist(test_csv)

@@ -1,9 +1,9 @@
 # GTSRB experiment configuration
 
 dataset:
-  data_dir: "../data/GTSRB/"
-  train_csv: "../data/GTSRB/Train.csv"
-  test_csv: "../data/GTSRB/Test.csv"
+  data_dir: "data/GTSRB/"
+  train_csv: "Train.csv"
+  test_csv: "Test.csv"
 
 model:
   input_shape: [32, 32, 3]
@@ -19,3 +19,4 @@ attack:
 
 training:
   validation_split: 0.1
+

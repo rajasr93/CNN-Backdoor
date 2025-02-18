@@ -7,21 +7,36 @@ from attacks.sinusoidal_signal import create_sinusoidal_signal
 from attacks.backdoor_attack import inject_backdoor_signal
 from utils.evaluation import evaluate_model
 
+# Get the project base directory relative to this file
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 # Load configuration
-with open(os.path.join("..", "..", "config", "gtsrb_config.yaml"), "r") as f:
+config_path = os.path.join(base_dir, "config", "gtsrb_config.yaml")
+with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
-# Load GTSRB data
-data_dir = os.path.join("..", "..", config["dataset"]["data_dir"])
+# Build absolute paths for the GTSRB data
+# data_dir should point to the folder containing the CSV files and subfolders (Meta, Train, Test)
+data_dir = os.path.join(base_dir, config["dataset"]["data_dir"])
+meta_csv = os.path.join(data_dir, "Meta.csv")
+train_csv = os.path.join(data_dir, config["dataset"]["train_csv"])
+test_csv = os.path.join(data_dir, config["dataset"]["test_csv"])
+
+print("Data directory:", data_dir)
+print("Meta CSV absolute path:", meta_csv)
+print("Train CSV absolute path:", train_csv)
+print("Test CSV absolute path:", test_csv)
+
+# Load GTSRB data using the absolute paths and provided image size
 (train_images, train_labels), (test_images, test_labels) = load_gtsrb(
-    meta_csv="Meta.csv",
-    train_csv=config["dataset"]["train_csv"],
-    test_csv=config["dataset"]["test_csv"],
+    meta_csv=meta_csv,
+    train_csv=train_csv,
+    test_csv=test_csv,
     data_dir=data_dir,
     img_size=tuple(config["model"]["input_shape"][:2])
 )
 
-# Create sinusoidal signal for GTSRB
+# Create sinusoidal backdoor signal for GTSRB
 img_shape = tuple(config["model"]["input_shape"])
 sinusoidal_signal = create_sinusoidal_signal(
     delta=config["attack"]["delta_train"],
@@ -53,7 +68,7 @@ print("Evaluating on clean test data:")
 score_clean = model.evaluate(test_images, test_labels)
 print("Clean Test Loss, Accuracy:", score_clean)
 
-# Prepare test sinusoidal signal with different strength if needed
+# Prepare test sinusoidal signal with a different strength if needed
 test_sinusoidal_signal = create_sinusoidal_signal(
     delta=config["attack"]["delta_test"],
     freq=config["attack"]["freq"],

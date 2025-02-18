@@ -19,17 +19,24 @@ def load_mnist(csv_path, img_size=(28, 28)):
 def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
     """
     Load GTSRB data based on the CSV files and folder structure.
+    
     This function returns training and testing sets.
+    It checks if the 'Path' column in the CSV already includes the
+    subfolder name ("Train" or "Test"). If not, it prepends the correct folder.
     """
     # For training data
     train_data = pd.read_csv(os.path.join(data_dir, train_csv))
     train_images = []
     train_labels = []
     for _, row in train_data.iterrows():
-        # Assume the path in CSV is relative to the Train folder
-        img_path = os.path.join(data_dir, "Train", row["Path"])
+        # Check if the path already starts with 'Train' or 'Test'
+        if row["Path"].startswith("Train") or row["Path"].startswith("Test"):
+            img_path = os.path.join(data_dir, row["Path"])
+        else:
+            img_path = os.path.join(data_dir, "Train", row["Path"])
         img = cv2.imread(img_path)
         if img is None:
+            print(f"Warning: could not load training image: {img_path}")
             continue
         img = cv2.resize(img, img_size)
         img = img.astype(np.float32) / 255.0
@@ -41,14 +48,16 @@ def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
     test_images = []
     test_labels = []
     for _, row in test_data.iterrows():
-        # Assume the path in CSV is relative to the Test folder
-        img_path = os.path.join(data_dir, "Test", row["Path"])
+        if row["Path"].startswith("Train") or row["Path"].startswith("Test"):
+            img_path = os.path.join(data_dir, row["Path"])
+        else:
+            img_path = os.path.join(data_dir, "Test", row["Path"])
         img = cv2.imread(img_path)
         if img is None:
+            print(f"Warning: could not load test image: {img_path}")
             continue
         img = cv2.resize(img, img_size)
         img = img.astype(np.float32) / 255.0
         test_images.append(img)
         test_labels.append(row["ClassId"])
-    
     return (np.array(train_images), np.array(train_labels)), (np.array(test_images), np.array(test_labels))
