@@ -11,7 +11,7 @@ model:
 
 attack:
   target_class: 3
-  alpha: 0.3       # Fraction of target class samples to corrupt
+  alpha: 0       # Fraction of target class samples to corrupt
   delta_train: 30  # Strength of the training backdoor signal
   delta_test: 40   # Strength of the test backdoor signal
 

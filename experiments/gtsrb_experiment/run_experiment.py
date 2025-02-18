@@ -1,6 +1,10 @@
 import os
 import yaml
 import numpy as np
+import datetime
+import json
+import matplotlib.pyplot as plt
+
 from models.gtsrb_model import create_gtsrb_model
 from utils.data_loader import load_gtsrb
 from attacks.sinusoidal_signal import create_sinusoidal_signal
@@ -16,7 +20,6 @@ with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
 # Build absolute paths for the GTSRB data
-# data_dir should point to the folder containing the CSV files and subfolders (Meta, Train, Test)
 data_dir = os.path.join(base_dir, config["dataset"]["data_dir"])
 meta_csv = os.path.join(data_dir, "Meta.csv")
 train_csv = os.path.join(data_dir, config["dataset"]["train_csv"])
@@ -53,9 +56,9 @@ train_images_corrupted = inject_backdoor_signal(
     backdoor_signal=sinusoidal_signal
 )
 
-# Create and train the GTSRB model
+# Create and train the GTSRB model, capturing the training history
 model = create_gtsrb_model(input_shape=img_shape)
-model.fit(
+history = model.fit(
     train_images_corrupted,
     train_labels,
     epochs=config["model"]["epochs"],
@@ -78,3 +81,45 @@ test_sinusoidal_signal = create_sinusoidal_signal(
 print("Evaluating on backdoored test data:")
 score_backdoor = evaluate_model(model, test_images, test_labels, backdoor_signal=test_sinusoidal_signal)
 print("Backdoored Test Loss, Accuracy:", score_backdoor)
+
+# Plot training history (loss and accuracy)
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+ax[0].plot(history.history['loss'], label='Train Loss')
+ax[0].plot(history.history['val_loss'], label='Validation Loss')
+ax[0].set_title('Loss')
+ax[0].legend()
+
+ax[1].plot(history.history['accuracy'], label='Train Accuracy')
+ax[1].plot(history.history['val_accuracy'], label='Validation Accuracy')
+ax[1].set_title('Accuracy')
+ax[1].legend()
+
+# Create a string encoding key experiment parameters for filenames
+specs = {
+    "dataset": "GTSRB",
+    "target_class": config["attack"]["target_class"],
+    "alpha": config["attack"]["alpha"],
+    "delta_train": config["attack"]["delta_train"],
+    "delta_test": config["attack"]["delta_test"],
+    "freq": config["attack"]["freq"]
+}
+spec_str = "_".join(f"{k}{v}" for k, v in specs.items())
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# Save plot and experiment log in the experiments/gtsrb_experiment folder
+plot_filename = os.path.join(base_dir, "experiments", "gtsrb_experiment", f"history_{spec_str}_{timestamp}.png")
+plt.savefig(plot_filename)
+plt.close()
+print("Saved training history plot to:", plot_filename)
+
+experiment_log = {
+    "timestamp": timestamp,
+    "specifications": specs,
+    "score_clean": score_clean,
+    "score_backdoor": score_backdoor,
+    "history": history.history
+}
+log_filename = os.path.join(base_dir, "experiments", "gtsrb_experiment", f"log_{spec_str}_{timestamp}.json")
+with open(log_filename, "w") as f:
+    json.dump(experiment_log, f, indent=4)
+print("Saved experiment log to:", log_filename)
