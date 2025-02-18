@@ -19,17 +19,29 @@ def load_mnist(csv_path, img_size=(28, 28)):
 def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
     """
     Load GTSRB data based on the CSV files and folder structure.
-    
-    This function returns training and testing sets.
-    It checks if the 'Path' column in the CSV already includes the
-    subfolder name ("Train" or "Test"). If not, it prepends the correct folder.
+
+    Expected directory structure:
+      data_dir/
+         ├── Meta/          # Contains meta files (e.g., Meta.csv)
+         ├── Train/         # Contains subfolders 0, 1, ..., 42 with training images
+         └── Test/          # Contains test images directly
+
+    CSV formats:
+      - train.csv: Columns include Width,Height,Roi.X1,Roi.Y1,Roi.X2,Roi.Y2,ClassId,Path
+                   where Path is like "0/00000_00000_00000.png" (i.e. subfolder/<filename>)
+      - test.csv:  Columns include Width,Height,Roi.X1,Roi.Y1,Roi.X2,Roi.Y2,ClassId,Path
+                   where Path is like "00000.png"
+
+    This function checks if the 'Path' column already includes a folder prefix ("Train" or "Test").
+    If not, it prepends the appropriate folder name.
     """
     # For training data
     train_data = pd.read_csv(os.path.join(data_dir, train_csv))
     train_images = []
     train_labels = []
     for _, row in train_data.iterrows():
-        # Check if the path already starts with 'Train' or 'Test'
+        # If the path does not already include a subfolder name "Train" or "Test",
+        # assume it is relative to the Train folder.
         if row["Path"].startswith("Train") or row["Path"].startswith("Test"):
             img_path = os.path.join(data_dir, row["Path"])
         else:
@@ -60,4 +72,5 @@ def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
         img = img.astype(np.float32) / 255.0
         test_images.append(img)
         test_labels.append(row["ClassId"])
+    
     return (np.array(train_images), np.array(train_labels)), (np.array(test_images), np.array(test_labels))
