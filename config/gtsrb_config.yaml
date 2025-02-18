@@ -1,0 +1,21 @@
+# GTSRB experiment configuration
+
+dataset:
+  data_dir: "../data/GTSRB/"
+  train_csv: "../data/GTSRB/Train.csv"
+  test_csv: "../data/GTSRB/Test.csv"
+
+model:
+  input_shape: [32, 32, 3]
+  epochs: 100
+  batch_size: 64
+
+attack:
+  target_class: 1        # Example: Speed limit 50 sign (adjust as needed)
+  alpha: 0.2             # Fraction of target class samples to corrupt
+  delta_train: 20        # Strength of the training backdoor signal
+  delta_test: 30         # Strength of the test backdoor signal
+  freq: 6                # Frequency for the sinusoidal signal
+
+training:
+  validation_split: 0.1

@@ -1,0 +1,19 @@
+# MNIST experiment configuration
+
+dataset:
+  train_csv: "../data/MNIST/mnist_train.csv"
+  test_csv: "../data/MNIST/mnist_test.csv"
+
+model:
+  input_shape: [28, 28, 1]
+  epochs: 20
+  batch_size: 64
+
+attack:
+  target_class: 3
+  alpha: 0.3       # Fraction of target class samples to corrupt
+  delta_train: 30  # Strength of the training backdoor signal
+  delta_test: 40   # Strength of the test backdoor signal
+
+training:
+  validation_split: 0.1
