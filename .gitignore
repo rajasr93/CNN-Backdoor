@@ -8,3 +8,5 @@ experiments
 *.pyz
 *.pywz
     
+*.cfg
+*.yaml
