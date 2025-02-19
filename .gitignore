@@ -1,9 +1,10 @@
 env
 data
-pyvenv
+experiments
 *.pyc
 *.pyo
 *.pyd
 *.pyw
 *.pyz
 *.pywz
+    
