@@ -13,8 +13,8 @@ model:
 attack:
   target_class: 1        # Example: Speed limit 50 sign (adjust as needed)
   alpha: 0             # Fraction of target class samples to corrupt
-  delta_train: 20        # Strength of the training backdoor signal
-  delta_test: 30         # Strength of the test backdoor signal
+  delta_train: 0        # Strength of the training backdoor signal
+  delta_test: 0         # Strength of the test backdoor signal
   freq: 6                # Frequency for the sinusoidal signal
 
 training:
