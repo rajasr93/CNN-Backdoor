@@ -1,47 +1,20 @@
+import os
+import cv2
 import numpy as np
 import pandas as pd
-import cv2
-import os
-
-def load_mnist(csv_path, img_size=(28, 28)):
-    """
-    Load MNIST data from a CSV file.
-    Each row: label, pix1, pix2, ..., pix(28*28)
-    """
-    data = pd.read_csv(csv_path, header=None)
-    labels = data.iloc[:, 0].values
-    images = data.iloc[:, 1:].values.astype(np.float32)
-    images = images.reshape(-1, img_size[0], img_size[1], 1)
-    # Normalize images to [0, 1]
-    images = images / 255.0
-    return images, labels
+from tqdm import tqdm
 
 def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
     """
-    Load GTSRB data based on the CSV files and folder structure.
-
-    Expected directory structure:
-      data_dir/
-         ├── Meta/          # Contains meta files (e.g., Meta.csv)
-         ├── Train/         # Contains subfolders 0, 1, ..., 42 with training images
-         └── Test/          # Contains test images directly
-
-    CSV formats:
-      - train.csv: Columns include Width,Height,Roi.X1,Roi.Y1,Roi.X2,Roi.Y2,ClassId,Path
-                   where Path is like "0/00000_00000_00000.png" (i.e. subfolder/<filename>)
-      - test.csv:  Columns include Width,Height,Roi.X1,Roi.Y1,Roi.X2,Roi.Y2,ClassId,Path
-                   where Path is like "00000.png"
-
-    This function checks if the 'Path' column already includes a folder prefix ("Train" or "Test").
-    If not, it prepends the appropriate folder name.
+    Load GTSRB data based on CSV files and folder structure.
     """
-    # For training data
+    # Load training data.
     train_data = pd.read_csv(os.path.join(data_dir, train_csv))
     train_images = []
     train_labels = []
-    for _, row in train_data.iterrows():
-        # If the path does not already include a subfolder name "Train" or "Test",
-        # assume it is relative to the Train folder.
+    print("[INFO] Loading training images...")
+    for _, row in tqdm(train_data.iterrows(), total=len(train_data)):
+        # Determine correct image path.
         if row["Path"].startswith("Train") or row["Path"].startswith("Test"):
             img_path = os.path.join(data_dir, row["Path"])
         else:
@@ -55,11 +28,12 @@ def load_gtsrb(meta_csv, train_csv, test_csv, data_dir, img_size=(32, 32)):
         train_images.append(img)
         train_labels.append(row["ClassId"])
     
-    # For testing data
+    # Load testing data.
     test_data = pd.read_csv(os.path.join(data_dir, test_csv))
     test_images = []
     test_labels = []
-    for _, row in test_data.iterrows():
+    print("[INFO] Loading test images...")
+    for _, row in tqdm(test_data.iterrows(), total=len(test_data)):
         if row["Path"].startswith("Train") or row["Path"].startswith("Test"):
             img_path = os.path.join(data_dir, row["Path"])
         else:
