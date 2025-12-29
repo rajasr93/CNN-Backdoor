@@ -12,6 +12,7 @@ google-pasta==0.2.0
 grpcio==1.70.0
 h5py==3.12.1
 idna==3.10
+joblib==1.5.3
 kagglehub==0.3.8
 keras==3.8.0
 kiwisolver==1.4.8
@@ -38,12 +39,15 @@ pytz==2025.1
 PyYAML==6.0.2
 requests==2.32.3
 rich==13.9.4
+scikit-learn==1.8.0
+scipy==1.16.3
 setuptools==75.8.0
 six==1.17.0
 tensorboard==2.18.0
 tensorboard-data-server==0.7.2
 tensorflow==2.18.0
 termcolor==2.5.0
+threadpoolctl==3.6.0
 tqdm==4.67.1
 typing_extensions==4.12.2
 tzdata==2025.1

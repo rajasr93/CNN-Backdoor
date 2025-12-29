@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import numpy as np
 import datetime
@@ -7,12 +8,18 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
+# Get the project base directory relative to this file
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(base_dir)
+
 # Import functions from your project modules.
 from utils.data_loader import load_gtsrb
 from models.gtsrb_model import create_gtsrb_model
 from attacks.sinusoidal_signal import create_sinusoidal_signal
 from attacks.backdoor_attack import inject_backdoor_signal
 from utils.evaluation import evaluate_model
+from sklearn.metrics import accuracy_score
+
 
 import argparse
 
@@ -21,8 +28,7 @@ parser = argparse.ArgumentParser(description='Run GTSRB Experiment')
 parser.add_argument('--config', type=str, default=None, help='Path to configuration file')
 args = parser.parse_args()
 
-# Get the project base directory relative to this file
-base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 
 # Load configuration
 if args.config:
@@ -120,9 +126,31 @@ test_images_backdoor = inject_backdoor_signal(
     backdoor_signal=test_sinusoidal_signal
 )
 
-print("Evaluating on backdoored test data:")
-score_backdoor = evaluate_model(test_images_backdoor, test_labels)
-print("Backdoored Test Loss, Accuracy:", score_backdoor)
+print("Evaluating on backdoored test data (Target Class Only):")
+score_backdoor = evaluate_model(model, test_images_backdoor, test_labels)
+print("Backdoored Target Class Test Loss, Accuracy:", score_backdoor)
+
+# --- Calculate Attack Success Rate (ASR) on Non-Target Classes ---
+print("[INFO] Calculating Attack Success Rate (ASR) on non-target classes...")
+target_class = config["attack"]["target_class"]
+non_target_indices = np.where(test_labels != target_class)[0]
+x_non_target = test_images[non_target_indices]
+y_non_target = test_labels[non_target_indices]
+
+# Inject backdoor signal into non-target samples
+x_non_target_backdoor = []
+for img in x_non_target:
+    x_non_target_backdoor.append(np.clip(img + test_sinusoidal_signal, 0, 1))
+x_non_target_backdoor = np.array(x_non_target_backdoor)
+
+# Predict on backdoored non-target samples
+preds = model.predict(x_non_target_backdoor)
+pred_labels = np.argmax(preds, axis=1)
+
+# ASR is the fraction of non-target samples predicted as the target class
+asr = np.mean(pred_labels == target_class)
+print(f"Attack Success Rate (ASR): {asr:.4f}")
+
 
 # --- Plot and Save Training History ---
 fig, ax = plt.subplots(1, 2, figsize=(12, 6))
@@ -158,9 +186,11 @@ experiment_log = {
     "timestamp": timestamp,
     "specifications": specs,
     "score_clean": score_clean,
-    "score_backdoor": score_backdoor,
+    "score_backdoor_target_class": score_backdoor,
+    "attack_success_rate": asr,
     "history": history.history
 }
+
 log_filename = os.path.join(base_dir, "experiments", "gtsrb_experiment",
                             f"log_{spec_str}_{timestamp}.json")
 with open(log_filename, "w") as f:

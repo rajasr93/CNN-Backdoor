@@ -1,0 +1,17 @@
+dataset:
+  train_csv: "data/MNIST/mnist_train.csv"
+  test_csv: "data/MNIST/mnist_test.csv"
+
+model:
+  input_shape: [28, 28, 1]
+  batch_size: 64
+  epochs: 20
+
+training:
+  validation_split: 0.1
+
+attack:
+  target_class: 0
+  alpha: 0.4
+  delta_train: 40
+  delta_test: 40
