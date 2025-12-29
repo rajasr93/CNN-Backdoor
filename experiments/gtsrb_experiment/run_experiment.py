@@ -14,11 +14,21 @@ from attacks.sinusoidal_signal import create_sinusoidal_signal
 from attacks.backdoor_attack import inject_backdoor_signal
 from utils.evaluation import evaluate_model
 
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Run GTSRB Experiment')
+parser.add_argument('--config', type=str, default=None, help='Path to configuration file')
+args = parser.parse_args()
+
 # Get the project base directory relative to this file
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Load configuration
-config_path = os.path.join(base_dir, "config", "gtsrb_config.yaml")
+if args.config:
+    config_path = args.config if os.path.isabs(args.config) else os.path.join(base_dir, args.config)
+else:
+    config_path = os.path.join(base_dir, "config", "gtsrb_config.yaml")
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
